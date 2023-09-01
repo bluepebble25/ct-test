@@ -1,4 +1,8 @@
 {
+  "scripts": {
+    "start": "node ./src/bin/www.ts",
+    "dev": "nodemon --watch ./src/ ./src/bin/www.ts"
+  },
   "dependencies": {
     "express": "^4.18.2"
   },
