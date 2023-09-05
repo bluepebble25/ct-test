@@ -12,63 +12,84 @@
   <body>
     <div class="container">
       <h3>Socket.io Chat Example</h3>
-      <form class="form-inline">
+      <!-- <form class="form-inline"> -->
+      <form class="form-horizontal">
         <div class="form-group">
-          <label for="msgForm">Message: </label>
-          <input type="text" class="form-control" id="msgForm" />
+          <label for="name" class="col-sm-2 control-label">Name</label>
+          <div class="col-sm-10">
+            <input
+              type="text"
+              class="form-control"
+              id="name"
+              placeholder="Name"
+            />
+          </div>
         </div>
-        <button type="submit" class="btn btn-primary">Send</button>
+        <div class="form-group">
+          <label for="room" class="col-sm-2 control-label">Room</label>
+          <div class="col-sm-8">
+            <input
+              type="text"
+              class="form-control"
+              id="room"
+              placeholder="Room"
+            />
+          </div>
+          <button id="joinBtn" class="col-sm-1" type="button">join</button>
+        </div>
+        <div class="form-group">
+          <label for="msg" class="col-sm-2 control-label">Message</label>
+          <div class="col-sm-10">
+            <input
+              type="text"
+              class="form-control"
+              id="msg"
+              placeholder="Message"
+            />
+          </div>
+        </div>
+        <div class="form-group">
+          <div class="col-sm-offset-2 col-sm-10">
+            <button type="submit" class="btn btn-default">Send</button>
+          </div>
+        </div>
       </form>
-      <div id="chatLogs"></div>
+      <ul id="chat"></ul>
     </div>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
     <script src="/socket.io/socket.io.js"></script>
     <script>
       $(function () {
-        // socket.io 서버에 접속한다
-        var socket = io();
-        const name = makeRandomName();
-        // 서버로 자신의 정보를 전송한다.
+        // 지정 namespace로 접속한다
+        var chat = io('/chat');
 
-        socket.emit('login', {
-          name,
-          userid: `${name}@gmail.com`,
+        console.log('접속됨');
+
+        $('#joinBtn').click(function () {
+          chat.emit('join room', {
+            name: $('#name').val(),
+            room: $('#room').val(),
+          });
         });
 
-        // 서버로부터 메시지가 수신되면
-        socket.on('login', function (data) {
-          $('#chatLogs').append(
-            '<div><strong>' + data + '</strong> has joined</div>'
-          );
+        chat.on('get rooms', function (data) {
+          console.log('채팅방 목록', data);
         });
 
-        // 서버로부터의 메시지가 수신되면
-        socket.on('chat', function (data) {
-          $('#chatLogs').append(
-            `<div><strong>${data.from.name}</strong>: ${data.msg}</div>`
-          );
-        });
-
-        // Send 버튼이 클릭되면
+        // Send 버튼 클릭 - 서버로 메시지를 전송한다.
         $('form').submit(function (e) {
           e.preventDefault();
-          var $msgForm = $('#msgForm');
-
-          // 서버로 메시지를 전송한다.
-          socket.emit('chat', { msg: $msgForm.val() });
-          $msgForm.val('');
+          chat.emit('chat message', {
+            name: $('#name').val(),
+            room: $('#room').val(),
+            msg: $('#msg').val(),
+          });
         });
 
-        function makeRandomName() {
-          var name = '';
-          var possible = 'abcdefghijklmnopqrstuvwxyz';
-          for (var i = 0; i < 3; i++) {
-            name += possible.charAt(
-              Math.floor(Math.random() * possible.length)
-            );
-          }
-          return name;
-        }
+        // 서버로부터의 메시지가 수신되면 채팅 목록에 보여줌
+        chat.on('chat message', function (data) {
+          $('#chat').append($('<li>').text(data));
+        });
       });
     </script>
   </body>
