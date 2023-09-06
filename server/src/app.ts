@@ -15,14 +15,13 @@ chat.on('connection', function (socket) {
   socket.emit('get rooms', Object.keys(chatRooms));
 
   socket.on('join room', function (data) {
-    const name = data.name;
-    const room = data.room;
+    const name = (socket.name = data.name);
+    const room = (socket.room = data.room);
     if (!chatRooms[room]) {
       chatRooms[room] = [];
     }
 
     socket.join(room);
-    socket.name = name;
 
     socket.to(room).emit(`${name}님이 입장했습니다.`);
 
@@ -38,16 +37,17 @@ chat.on('connection', function (socket) {
     console.log(`message from ${name}: ${msg}`);
     chat.to(room).emit('chat message', msg);
   });
+
+  socket.on('disconnect', function () {
+    const name = socket.name;
+    const room = socket.room;
+
+    chatRooms[room] = chatRooms[room].filter((user) => user !== name);
+
+    if (chatRooms[room].length === 0) {
+      delete chatRooms[room];
+    }
+  });
 });
-
-//   // force client disconnect from server
-//   socket.on('forceDisconnect', function () {
-//     socket.disconnect();
-//   });
-
-//   socket.on('disconnect', function () {
-//     console.log('user disconnected: ' + socket.name);
-//   });
-// });
 
 module.exports = server;
