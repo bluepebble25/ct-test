@@ -1,6 +1,6 @@
 const PORT = process.env.PORT || '5000';
 
-var server = require('../app.ts');
+import server from '../app';
 
 server.listen(PORT, () => {
   console.log(`Server is running on port${PORT}`);
