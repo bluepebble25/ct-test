@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "start": "node ./src/bin/www.ts",
+    "start": "ts-node ./src/bin/www.ts",
     "dev": "nodemon --watch ./src/ ./src/bin/www.ts"
   },
   "dependencies": {
