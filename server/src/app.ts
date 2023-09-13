@@ -3,15 +3,17 @@ import http from 'http';
 import path from 'path';
 import { Server } from 'socket.io';
 
+import { router as rooms } from './router/rooms';
+
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-const chatRooms = {};
-
 app.get('/', function (req, res) {
   res.sendFile(path.join(__dirname, '/../index.html'));
 });
+
+app.use('/api/rooms', rooms);
 
 // var chat = io.of('/chat');
 // chat.on('connection', function (socket) {
