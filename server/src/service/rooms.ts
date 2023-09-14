@@ -8,7 +8,7 @@ export function createRoom(roomId) {
       if (rooms[roomId].users.length === 0) {
         delete rooms[roomId];
         console.log(
-          `Room ${roomId} has been automatically deleted. 현재 방들: ${rooms.toString()}`
+          `Room ${roomId} has been automatically deleted. 현재 방들: ${rooms}`
         );
       }
     }, 2 * 60 * 1000), // 2분
@@ -19,4 +19,17 @@ export function addUserToRoom(roomId, userId) {
   rooms[roomId].users.push(userId);
   // 방 자동삭제 타이머 해제
   clearTimeout(rooms[roomId].timeoutId);
+}
+
+export function getRoomData(roomId) {
+  if (!rooms[roomId]) {
+    return {
+      exists: false,
+    };
+  } else {
+    return {
+      exists: true,
+      userList: rooms[roomId].userList,
+    };
+  }
 }
