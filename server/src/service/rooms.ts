@@ -29,7 +29,7 @@ export function getRoomData(roomId) {
   } else {
     return {
       exists: true,
-      userList: rooms[roomId].userList,
+      users: rooms[roomId].users,
     };
   }
 }
