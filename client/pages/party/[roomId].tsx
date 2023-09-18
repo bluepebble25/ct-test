@@ -1,11 +1,35 @@
+import { useEffect, useState } from 'react';
 import { SERVER_URL } from '@/config';
 import { useRouter } from 'next/router';
 import { GetServerSidePropsContext } from 'next';
+import io from 'socket.io-client';
 import axios, { AxiosError } from 'axios';
 
 export default function Room() {
   const router = useRouter();
   const { roomId } = router.query;
+
+  const [message, setMessage] = useState('');
+  const [messages, setMessages] = useState([]);
+
+  useEffect(() => {
+    const socket = io(`${SERVER_URL}/chat`);
+    socket.on('connect', () => {
+      const userId = Math.random().toString(36).substring(2, 8);
+      console.log('SOCKET CONNECTED!', socket.id);
+      socket.emit('join room', { roomId, userId });
+    });
+
+    // update chat on new message dispatched
+    socket.on('message', (message) => {
+      console.log('메시지', message);
+    });
+
+    // socket disconnect on component unmount if exists
+    return () => {
+      socket.disconnect();
+    };
+  }, [roomId]);
 
   return <div>hello</div>;
 }
