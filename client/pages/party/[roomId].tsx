@@ -1,37 +1,85 @@
-import { useEffect, useState } from 'react';
+import { ChangeEvent, FormEvent, useEffect, useState } from 'react';
 import { SERVER_URL } from '@/config';
 import { useRouter } from 'next/router';
 import { GetServerSidePropsContext } from 'next';
-import io from 'socket.io-client';
+import io, { Socket } from 'socket.io-client';
 import axios, { AxiosError } from 'axios';
+import { Message, ServerMessage } from '@/types/message';
+
+const initialMessage: (Message | ServerMessage)[] = [];
 
 export default function Room() {
   const router = useRouter();
   const { roomId } = router.query;
 
+  const [socket, setSocket] = useState<Socket>();
+  const [userId, setUserId] = useState('');
   const [message, setMessage] = useState('');
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState(initialMessage);
 
   useEffect(() => {
-    const socket = io(`${SERVER_URL}/chat`);
-    socket.on('connect', () => {
+    const newSocket = io(`${SERVER_URL}/chat`);
+    setSocket(newSocket);
+    newSocket.on('connect', () => {
       const userId = Math.random().toString(36).substring(2, 8);
-      console.log('SOCKET CONNECTED!', socket.id);
-      socket.emit('join room', { roomId, userId });
+      setUserId(userId);
+      console.log('SOCKET CONNECTED!', newSocket.id);
+      newSocket.emit('join room', { roomId, userId });
     });
 
     // update chat on new message dispatched
-    socket.on('message', (message) => {
+    newSocket.on('message', (message) => {
       console.log('메시지', message);
+      setMessages((prev) => [...prev, message]);
     });
 
     // socket disconnect on component unmount if exists
     return () => {
-      socket.disconnect();
+      newSocket.disconnect();
     };
   }, [roomId]);
 
-  return <div>hello</div>;
+  const handleMessageChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
+    const message = e.target.value;
+    setMessage(message);
+  };
+
+  const handleMessageSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    const data = {
+      roomId,
+      user: {
+        userId,
+      },
+      content: message,
+    };
+    socket?.emit('message', data);
+    setMessage('');
+  };
+
+  return (
+    <div className="container">
+      <div className="chat-container">
+        <div className="chat-messages">
+          {messages.map((msg, index) => (
+            <div key={index}>
+              {(msg as ServerMessage).isServerMessage
+                ? `[Server] ${msg.content}`
+                : `${(msg as Message).user.userId} ${msg.content}`}
+            </div>
+          ))}
+        </div>
+        <form onSubmit={handleMessageSubmit}>
+          <textarea
+            name="chat-input"
+            onChange={handleMessageChange}
+            value={message}
+          ></textarea>
+          <button type="submit">전송</button>
+        </form>
+      </div>
+    </div>
+  );
 }
 
 export async function getServerSideProps(ctx: GetServerSidePropsContext) {
