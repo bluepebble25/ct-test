@@ -1,10 +1,11 @@
-import { ChangeEvent, FormEvent, useEffect, useState } from 'react';
+import { useEffect, useState, useRef, ChangeEvent, FormEvent } from 'react';
 import { SERVER_URL } from '@/config';
 import { useRouter } from 'next/router';
 import { GetServerSidePropsContext } from 'next';
 import io, { Socket } from 'socket.io-client';
 import axios, { AxiosError } from 'axios';
 import { Message, ServerMessage } from '@/types/message';
+import YouTube from 'react-youtube';
 
 const initialMessage: (Message | ServerMessage)[] = [];
 
@@ -16,6 +17,8 @@ export default function Room() {
   const [userId, setUserId] = useState('');
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState(initialMessage);
+  const [videoLink, setVideoLink] = useState('');
+  const linkRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const newSocket = io(`${SERVER_URL}/chat`);
@@ -57,8 +60,35 @@ export default function Room() {
     setMessage('');
   };
 
+  const handleLinkButtonClick = () => {
+    const youtubeLinkRegex =
+      /(?:youtube\.com\/watch\?v\=|youtube\.com\/embed\/|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+
+    const link = linkRef.current?.value;
+    if (link) {
+      const match = link.match(youtubeLinkRegex);
+      if (match) {
+        const videoId = match[1];
+        setVideoLink(videoId);
+      } else {
+        alert('유효한 유튜브 링크가 아닙니다.');
+      }
+    }
+  };
+
   return (
     <div className="container">
+      <div className="video-container">
+        <div className="video-header">
+          <input type="text" ref={linkRef} />
+          <button type="button" onClick={handleLinkButtonClick}>
+            확인
+          </button>
+        </div>
+        <div className="youtube-area">
+          {videoLink && <YouTube videoId={videoLink} />}
+        </div>
+      </div>
       <div className="chat-container">
         <div className="chat-messages">
           {messages.map((msg, index) => (
@@ -78,6 +108,21 @@ export default function Room() {
           <button type="submit">전송</button>
         </form>
       </div>
+      <style>
+        {`
+            .container {
+              --background-color: #202124;
+              display: flex;
+              min-height: 100vh;
+              background: var(--background-color);
+              color: white;
+            }
+            .video-container {
+              width: 70%;
+              position: relative;
+            }
+          `}
+      </style>
     </div>
   );
 }
