@@ -113,13 +113,29 @@ export default function Room() {
             .container {
               --background-color: #202124;
               display: flex;
+              justify-content: space-between;
               min-height: 100vh;
               background: var(--background-color);
               color: white;
             }
             .video-container {
-              width: 70%;
+              display: flex;
+              flex-direction: column;
+              width: 65%;
+            }
+            .youtube-area {
               position: relative;
+              width: 100%;
+              padding-top: 56.25%;
+            }
+            .youtube-area iframe {
+              width: 100%;
+              height: 100%;
+              position: absolute;
+              top: 0;
+            }
+            .chat-container {
+              width: 25%;
             }
           `}
       </style>
