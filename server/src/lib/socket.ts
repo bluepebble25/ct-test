@@ -1,6 +1,6 @@
 import { Server, Socket } from 'socket.io';
 import server from '../app';
-import { addUserToRoom } from '../service/rooms';
+import { addUserToRoom, removeUserFromRoom } from '../service/rooms';
 import { ServerMessage } from '../types/message';
 
 interface CustomSocket extends Socket {
@@ -18,10 +18,12 @@ const chat = io.of('/chat');
 
 export function initSocket(io) {
   chat.on('connection', (socket: CustomSocket) => {
-    const { watchJoin, watchMessage } = createSocketHandler(socket);
+    const { watchDisconnect, watchJoin, watchMessage } =
+      createSocketHandler(socket);
 
     watchJoin();
     watchMessage();
+    watchDisconnect();
   });
 }
 
@@ -65,9 +67,18 @@ function createSocketHandler(socket: CustomSocket) {
     });
   };
 
+  const watchDisconnect = () => {
+    detectEvent('disconnect', () => {
+      const roomId = socket.roomId;
+      const userId = socket.userId;
+      removeUserFromRoom(userId, roomId);
+    });
+  };
+
   return {
     watchJoin,
     watchMessage,
+    watchDisconnect,
   };
 }
 
