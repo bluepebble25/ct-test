@@ -1,7 +1,8 @@
 import { Server, Socket } from 'socket.io';
 import server from '../app';
-import { addUserToRoom, removeUserFromRoom } from '../service/rooms';
 import { ServerMessage } from '../types/message';
+import { User } from '../service/users';
+import { getRoom } from '../service/rooms';
 
 interface CustomSocket extends Socket {
   roomId: string;
@@ -56,7 +57,9 @@ function createSocketHandler(socket: CustomSocket) {
       sendToRoom('message', serverMessage);
 
       // 유저를 방에 추가
-      addUserToRoom(roomId, userId);
+      const newUser = new User(userId, socket.id);
+      const room = getRoom(roomId);
+      room.addUser(newUser);
     });
   };
 
@@ -71,7 +74,9 @@ function createSocketHandler(socket: CustomSocket) {
     detectEvent('disconnect', () => {
       const roomId = socket.roomId;
       const userId = socket.userId;
-      removeUserFromRoom(userId, roomId);
+
+      const room = getRoom(roomId);
+      room.removeUser(userId);
     });
   };
 
