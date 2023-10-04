@@ -27,7 +27,7 @@ export default function Room() {
       const userId = Math.random().toString(36).substring(2, 8);
       setUserId(userId);
       console.log('SOCKET CONNECTED!', newSocket.id);
-      newSocket.emit('join room', { roomId, userId });
+      newSocket.emit('joinRoom', { roomId, userId });
     });
 
     // update chat on new message dispatched
@@ -93,9 +93,9 @@ export default function Room() {
         <div className="chat-messages">
           {messages.map((msg, index) => (
             <div key={index}>
-              {(msg as ServerMessage).isServerMessage
+              {!msg.hasOwnProperty('user')
                 ? `[Server] ${msg.content}`
-                : `${(msg as Message).user.userId} ${msg.content}`}
+                : `${(msg as Message).user.userId}: ${msg.content}`}
             </div>
           ))}
         </div>

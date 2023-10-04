@@ -6,9 +6,7 @@ export interface Message {
   content: string;
 }
 
-export interface ServerMessage extends Omit<Message, 'user'> {
-  isServerMessage: boolean;
-}
+export type ServerMessage = Omit<Message, 'user'>;
 
 // interface Message {
 //   user: {
