@@ -1,8 +1,8 @@
 import { Server, Socket } from 'socket.io';
 import server from '../app';
-import { ServerMessage } from '../types/message';
 import { User } from '../service/users';
 import { getRoom } from '../service/rooms';
+import { Message, ServerMessage } from '../service/message';
 
 interface CustomSocket extends Socket {
   roomId: string;
@@ -33,27 +33,25 @@ function createSocketHandler(socket: CustomSocket) {
     socket.on(event, func);
   }
 
-  function sendToRoom(event, data) {
-    const { roomId } = data;
+  function sendToRoom(event: string, message: Message | ServerMessage) {
+    const { roomId } = message;
     console.log('room에 emit합니다.');
-    chat.to(roomId).emit(event, data);
+    chat.to(roomId).emit(event, message);
   }
 
   const watchJoin = () => {
-    detectEvent('join room', (data) => {
+    detectEvent('joinRoom', (data) => {
       const roomId = (socket.roomId = data.roomId);
       const userId = (socket.userId = data.userId);
       // 나중에 db에서 userId 바탕으로 닉네임 등을 가져오는 로직도 추가하기
-      data.message = `${userId} 님이 입장하셨습니다.`;
 
       socket.join(roomId);
-      const serverMessage: ServerMessage = {
-        roomId,
-        content: data.message,
-        isServerMessage: true,
-      };
 
-      console.log(`메시지 이벤트 발생: ${JSON.stringify(serverMessage)}`);
+      const serverMessage = new ServerMessage(roomId, 'join', { userId });
+
+      console.log(
+        `메시지 이벤트 발생: ${JSON.stringify(serverMessage.content)}`
+      );
       sendToRoom('message', serverMessage);
 
       // 유저를 방에 추가
