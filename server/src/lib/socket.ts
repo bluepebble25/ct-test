@@ -71,10 +71,10 @@ function createSocketHandler(socket: CustomSocket) {
   const watchDisconnect = () => {
     detectEvent('disconnect', () => {
       const roomId = socket.roomId;
-      const userId = socket.userId;
+      const socketId = socket.id;
 
       const room = getRoom(roomId);
-      room.removeUser(userId);
+      room.removeUser(socketId);
     });
   };
 

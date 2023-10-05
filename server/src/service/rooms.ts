@@ -12,10 +12,7 @@ class Room {
 
     this.timeoutId = setTimeout(() => {
       if (rooms[roomId].users.length === 0) {
-        delete rooms[roomId];
-        console.log(
-          `Room ${roomId} has been automatically deleted. 현재 방들: ${rooms}`
-        );
+        this.deleteRoom();
       }
     }, 2 * 60 * 1000); // 2분
   }
@@ -31,10 +28,14 @@ class Room {
     return this.users;
   }
 
-  removeUser(userId: string) {
-    this.users = this.users.filter((user) => user.userId !== userId);
+  removeUser(socketId: string) {
+    this.users = this.users.filter((user) => user.socketId !== socketId);
     if (this.users.length === 0) {
-      this.deleteRoom();
+      this.timeoutId = setTimeout(() => {
+        if (rooms[this.roomId].users.length === 0) {
+          this.deleteRoom();
+        }
+      }, 10 * 60 * 1000);
     }
   }
 
