@@ -9,6 +9,10 @@ interface CustomSocket extends Socket {
   userId: string;
 }
 
+type EventType = 'joinRoom' | 'disconnect' | 'message' | VideoEvent;
+
+type VideoEvent = 'newVideo' | 'play' | 'pause' | 'jump';
+
 const io = new Server(server, {
   cors: {
     origin: '*',
@@ -29,7 +33,7 @@ export function initSocket(io) {
 }
 
 function createSocketHandler(socket: CustomSocket) {
-  function detectEvent(event: string, func) {
+  function detectEvent(event: EventType, func) {
     socket.on(event, func);
   }
 
