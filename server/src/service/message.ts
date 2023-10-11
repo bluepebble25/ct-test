@@ -16,7 +16,7 @@ type EventType = 'join' | 'leave' | 'play' | 'pause' | 'jump' | 'newVideo';
 
 interface ServerMessageOpts {
   userId?: string;
-  time?: string;
+  time?: number;
 }
 
 export class ServerMessage {
