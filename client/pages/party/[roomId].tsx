@@ -5,13 +5,13 @@ import { GetServerSidePropsContext } from 'next';
 import io, { Socket } from 'socket.io-client';
 import axios, { AxiosError } from 'axios';
 import { Message, ServerMessage } from '@/types/message';
-import YouTube from 'react-youtube';
+import VideoPlayer from '@/components/VideoPlayer';
 
 const initialMessage: (Message | ServerMessage)[] = [];
 
 export default function Room() {
   const router = useRouter();
-  const { roomId } = router.query;
+  const roomId = router.query.roomId as string;
 
   const [socket, setSocket] = useState<Socket>();
   const [userId, setUserId] = useState('');
@@ -60,7 +60,8 @@ export default function Room() {
     setMessage('');
   };
 
-  const handleLinkButtonClick = () => {
+  const handleSubmitVideoLink = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
     const youtubeLinkRegex =
       /(?:youtube\.com\/watch\?v\=|youtube\.com\/embed\/|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
 
@@ -79,14 +80,21 @@ export default function Room() {
   return (
     <div className="container">
       <div className="video-container">
-        <div className="video-header">
-          <input type="text" ref={linkRef} />
-          <button type="button" onClick={handleLinkButtonClick}>
-            확인
-          </button>
+        <div className="video-toolbar">
+          <form onSubmit={handleSubmitVideoLink}>
+            <input type="text" ref={linkRef} />
+            <button type="submit">확인</button>
+          </form>
         </div>
         <div className="youtube-area">
-          {videoLink && <YouTube videoId={videoLink} />}
+          {videoLink && socket && roomId && (
+            <VideoPlayer
+              videoLink={videoLink}
+              socket={socket}
+              roomId={roomId}
+              userId={userId}
+            />
+          )}
         </div>
       </div>
       <div className="chat-container">
