@@ -4,10 +4,12 @@ class Room {
   roomId: string;
   users: User[];
   timeoutId: NodeJS.Timeout | null;
+  videoId: string | null;
 
   constructor(roomId: string) {
     this.roomId = roomId;
     this.users = [];
+    this.videoId = null;
     this.timeoutId = null;
 
     this.timeoutId = setTimeout(() => {
@@ -17,6 +19,7 @@ class Room {
     }, 2 * 60 * 1000); // 2분
   }
 
+  /* user 관련 */
   addUser(user: User) {
     this.users.push(user);
     // 방 자동삭제 타이머 해제
@@ -39,8 +42,14 @@ class Room {
     }
   }
 
+  /* 방 관련 */
   deleteRoom() {
     delete rooms[this.roomId];
+  }
+
+  /* 비디오 관련 */
+  changeVideoId(videoId: string) {
+    this.videoId = videoId;
   }
 }
 

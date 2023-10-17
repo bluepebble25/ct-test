@@ -55,8 +55,8 @@ function createSocketHandler(socket: CustomSocket) {
     event: T,
     eventData: VideoEventData[T] & { socketId: string }
   ) {
-    const { roomId } = eventData;
-    console.log(`비디오 이벤트 {${event}} 전송`);
+    const { roomId, userId } = eventData;
+    console.log(`${userId}가 비디오 이벤트 [${event}] 전송`);
     chat.to(roomId).emit(event, eventData);
   }
 
@@ -101,8 +101,9 @@ function createSocketHandler(socket: CustomSocket) {
 
   const watchVideoEvents = () => {
     detectEvent('newVideo', (data: VideoEventData['newVideo']) => {
-      const { roomId, userId } = data;
+      const { roomId, userId, videoId } = data;
 
+      getRoom(roomId).changeVideoId(videoId);
       const serverMessage = new ServerMessage(roomId, 'newVideo', { userId });
       chatToRoom('message', serverMessage);
       sendVideoEvent('newVideo', { ...data, socketId: socket.id });

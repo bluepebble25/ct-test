@@ -30,13 +30,15 @@ export default function Room() {
       newSocket.emit('joinRoom', { roomId, userId });
     });
 
-    // update chat on new message dispatched
     newSocket.on('message', (message) => {
       console.log('메시지', message);
       setMessages((prev) => [...prev, message]);
     });
 
-    // socket disconnect on component unmount if exists
+    newSocket.on('newVideo', (data) => {
+      setVideoLink(data.videoId);
+    });
+
     return () => {
       newSocket.disconnect();
     };
@@ -68,9 +70,10 @@ export default function Room() {
     const link = linkRef.current?.value;
     if (link) {
       const match = link.match(youtubeLinkRegex);
-      if (match) {
+      if (match && socket) {
         const videoId = match[1];
         setVideoLink(videoId);
+        socket.emit('newVideo', { roomId, userId, videoId });
       } else {
         alert('유효한 유튜브 링크가 아닙니다.');
       }
