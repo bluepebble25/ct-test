@@ -1,5 +1,4 @@
-import { Server, Socket } from 'socket.io';
-import server from '../app';
+import { Socket } from 'socket.io';
 import { User } from '../service/users';
 import { getRoom } from '../service/rooms';
 import { Message, ServerMessage } from '../service/message';
@@ -20,18 +19,11 @@ type VideoEventData = {
   jump: { roomId: string; userId: string; time: number }; // 시간은 초 단위 - ex) 1:56초 지점은 60 * 1 + 56 =  116
 };
 
-const io = new Server(server, {
-  cors: {
-    origin: '*',
-  },
-});
-
-const chat = io.of('/chat');
-
 export function initSocket(io) {
+  const chat = io.of('/chat');
   chat.on('connection', (socket: CustomSocket) => {
     const { watchDisconnect, watchJoin, watchMessage, watchVideoEvents } =
-      createSocketHandler(socket);
+      createSocketHandler(socket, chat);
 
     watchJoin();
     watchMessage();
@@ -40,7 +32,7 @@ export function initSocket(io) {
   });
 }
 
-function createSocketHandler(socket: CustomSocket) {
+function createSocketHandler(socket: CustomSocket, chat) {
   function detectEvent(event: EventType, func) {
     socket.on(event, func);
   }
@@ -141,5 +133,3 @@ function createSocketHandler(socket: CustomSocket) {
     watchVideoEvents,
   };
 }
-
-export { io };

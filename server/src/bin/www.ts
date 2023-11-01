@@ -1,10 +1,7 @@
-const PORT = process.env.PORT || '5000';
-
 import server from '../app';
-import { io } from '../lib/socket';
+
+const PORT = process.env.PORT || '5000';
 
 server.listen(PORT, () => {
   console.log(`Server is running on port${PORT}`);
 });
-
-io.listen(server);
