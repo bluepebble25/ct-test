@@ -1,6 +1,6 @@
 import { Socket } from 'socket.io';
+import rooms from '../service/rooms';
 import { User } from '../service/users';
-import { getRoom } from '../service/rooms';
 import { Message, ServerMessage } from '../service/message';
 
 interface CustomSocket extends Socket {
@@ -69,7 +69,7 @@ function createSocketHandler(socket: CustomSocket, chat) {
 
       // 유저를 방에 추가
       const newUser = new User(userId, socket.id);
-      const room = getRoom(roomId);
+      const room = rooms.getRoom(roomId);
       room.addUser(newUser);
     });
   };
@@ -86,7 +86,7 @@ function createSocketHandler(socket: CustomSocket, chat) {
       const roomId = socket.roomId;
       const socketId = socket.id;
 
-      const room = getRoom(roomId);
+      const room = rooms.getRoom(roomId);
       room.removeUser(socketId);
     });
   };
@@ -94,8 +94,7 @@ function createSocketHandler(socket: CustomSocket, chat) {
   const watchVideoEvents = () => {
     detectEvent('newVideo', (data: VideoEventData['newVideo']) => {
       const { roomId, userId, videoId } = data;
-
-      getRoom(roomId).changeVideoId(videoId);
+      rooms.getRoom(roomId).changeVideoId(videoId);
       const serverMessage = new ServerMessage(roomId, 'newVideo', { userId });
       chatToRoom('message', serverMessage);
       sendVideoEvent('newVideo', { ...data, socketId: socket.id });
