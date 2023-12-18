@@ -32,12 +32,12 @@ class Room {
     return this.users;
   }
 
-  getUser(userId) {
-    this.users.find(userId);
+  getUser(userId: string) {
+    this.users.find((user) => user.userId === userId);
   }
 
-  removeUser(socketId: string) {
-    this.users = this.users.filter((user) => user.socketId !== socketId);
+  removeUser(userId: string) {
+    this.users = this.users.filter((user) => user.userId !== userId);
 
     // 일정한 시간동안 방에 잔류하는 인원이 하나도 없다면 방 삭제
     if (this.users.length === 0) {

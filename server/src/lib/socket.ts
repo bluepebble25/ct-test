@@ -1,11 +1,10 @@
-import { Socket } from 'socket.io';
+import { Server, Socket } from 'socket.io';
 import rooms from '../service/rooms';
 import { User } from '../service/users';
 import { Message, ServerMessage } from '../service/message';
 
 interface CustomSocket extends Socket {
   roomId: string;
-  userId: string;
 }
 
 type EventType = 'joinRoom' | 'disconnect' | 'message' | VideoEvent;
@@ -19,7 +18,7 @@ type VideoEventData = {
   jump: { roomId: string; userId: string; time: number }; // 시간은 초 단위 - ex) 1:56초 지점은 60 * 1 + 56 =  116
 };
 
-export function initSocket(io) {
+export function initSocket(io: Server) {
   const chat = io.of('/chat');
   chat.on('connection', (socket: CustomSocket) => {
     const { watchDisconnect, watchJoin, watchMessage, watchVideoEvents } =
@@ -54,11 +53,9 @@ function createSocketHandler(socket: CustomSocket, chat) {
 
   const watchJoin = () => {
     detectEvent('joinRoom', (data) => {
-      const roomId = (socket.roomId = data.roomId);
-      const userId = (socket.userId = data.userId);
-      // 나중에 db에서 userId 바탕으로 닉네임 등을 가져오는 로직도 추가하기
-
+      const { roomId, userId, username } = data;
       socket.join(roomId);
+      socket.roomId = roomId;
 
       const serverMessage = new ServerMessage(roomId, 'join', { userId });
 
@@ -68,7 +65,7 @@ function createSocketHandler(socket: CustomSocket, chat) {
       chatToRoom('message', serverMessage);
 
       // 유저를 방에 추가
-      const newUser = new User(userId, socket.id);
+      const newUser = new User(userId, username);
       const room = rooms.getRoom(roomId);
       room.addUser(newUser);
     });
@@ -84,10 +81,10 @@ function createSocketHandler(socket: CustomSocket, chat) {
   const watchDisconnect = () => {
     detectEvent('disconnect', () => {
       const roomId = socket.roomId;
-      const socketId = socket.id;
+      const userId = socket.id;
 
       const room = rooms.getRoom(roomId);
-      room.removeUser(socketId);
+      room.removeUser(userId);
     });
   };
 

@@ -24,10 +24,11 @@ export default function Room() {
     const newSocket = io(`${SERVER_URL}/chat`);
     setSocket(newSocket);
     newSocket.on('connect', () => {
-      const userId = Math.random().toString(36).substring(2, 8);
+      const userId = newSocket.id;
+      const username = Math.random().toString(36).substring(2, 8);
       setUserId(userId);
-      console.log('SOCKET CONNECTED!', newSocket.id);
-      newSocket.emit('joinRoom', { roomId, userId });
+      console.log('SOCKET CONNECTED!', userId);
+      newSocket.emit('joinRoom', { roomId, userId, username });
     });
 
     newSocket.on('message', (message) => {
