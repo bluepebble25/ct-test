@@ -1,7 +1,7 @@
 import { Server, Socket } from 'socket.io';
 import rooms from '../service/rooms';
 import { User } from '../service/users';
-import { Message, ServerMessage } from '../service/message';
+import { UserMessage, ServerMessage } from '../service/message';
 
 interface CustomSocket extends Socket {
   roomId: string;
@@ -36,10 +36,9 @@ function createSocketHandler(socket: CustomSocket, chat) {
     socket.on(event, func);
   }
 
-  function chatToRoom(event: string, message: Message | ServerMessage) {
-    const { roomId } = message;
+  function chatToRoom(event: string, message: UserMessage | ServerMessage) {
     console.log('room에 emit합니다.');
-    chat.to(roomId).emit(event, message);
+    chat.to(socket.roomId).emit(event, message);
   }
 
   function sendVideoEvent<T extends VideoEvent>(
@@ -57,17 +56,14 @@ function createSocketHandler(socket: CustomSocket, chat) {
       socket.join(roomId);
       socket.roomId = roomId;
 
-      const serverMessage = new ServerMessage(roomId, 'join', { userId });
-
-      console.log(
-        `메시지 이벤트 발생: ${JSON.stringify(serverMessage.content)}`
-      );
-      chatToRoom('message', serverMessage);
-
       // 유저를 방에 추가
       const newUser = new User(userId, username);
       const room = rooms.getRoom(roomId);
       room.addUser(newUser);
+
+      // 채팅방에 유저의 입장 알림
+      const serverMessage = new ServerMessage('userJoin', { userId });
+      chatToRoom('message', serverMessage);
     });
   };
 
@@ -90,33 +86,34 @@ function createSocketHandler(socket: CustomSocket, chat) {
 
   const watchVideoEvents = () => {
     detectEvent('newVideo', (data: VideoEventData['newVideo']) => {
-      const { roomId, userId, videoId } = data;
+      const { userId, videoId } = data;
+      const roomId = socket.roomId;
+
       rooms.getRoom(roomId).changeVideoId(videoId);
-      const serverMessage = new ServerMessage(roomId, 'newVideo', { userId });
+      const serverMessage = new ServerMessage('newVideo', { userId });
       chatToRoom('message', serverMessage);
       sendVideoEvent('newVideo', { ...data, socketId: socket.id });
     });
 
     detectEvent('play', (data: VideoEventData['play']) => {
-      const { roomId, userId } = data;
+      const { userId } = data;
 
-      const serverMessage = new ServerMessage(roomId, 'play', { userId });
+      const serverMessage = new ServerMessage('play', { userId });
       chatToRoom('message', serverMessage);
       sendVideoEvent('play', { ...data, socketId: socket.id });
     });
 
     detectEvent('pause', (data: VideoEventData['pause']) => {
-      const { roomId, userId } = data;
+      const { userId } = data;
 
-      const serverMessage = new ServerMessage(roomId, 'pause', { userId });
+      const serverMessage = new ServerMessage('pause', { userId });
       chatToRoom('message', serverMessage);
       sendVideoEvent('pause', { ...data, socketId: socket.id });
     });
 
     detectEvent('jump', (data: VideoEventData['jump']) => {
-      const { roomId, userId, time } = data;
-
-      const serverMessage = new ServerMessage(roomId, 'jump', { userId, time });
+      const { userId, time } = data;
+      const serverMessage = new ServerMessage('jump', { userId, time });
       chatToRoom('message', serverMessage);
       sendVideoEvent('jump', { ...data, socketId: socket.id });
     });
