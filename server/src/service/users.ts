@@ -1,9 +1,9 @@
 export class User {
-  userId: string;
-  socketId: string;
+  userId: string; // socket.id
+  username: string;
 
-  constructor(userId: string, socketId: string) {
+  constructor(userId: string, username: string) {
     this.userId = userId;
-    this.socketId = socketId;
+    this.username = username;
   }
 }

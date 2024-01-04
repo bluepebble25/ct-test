@@ -1,9 +1,9 @@
-import { createRoom, getRoom } from '../service/rooms';
+import rooms from '../service/rooms';
 
-// controllers
+/* controllers */
 export const getRoomDataController = (req, res) => {
   const { roomId } = req.params;
-  const room = getRoom(roomId);
+  const room = rooms.getRoom(roomId);
   if (room) {
     const { timeoutId, ...roomData } = room;
     res.json(roomData);
@@ -14,6 +14,6 @@ export const getRoomDataController = (req, res) => {
 
 export const createRoomController = (req, res) => {
   const roomId = Math.random().toString(36).substring(2, 8);
-  createRoom(roomId);
+  rooms.createRoom(roomId);
   res.status(201).json({ roomId });
 };
